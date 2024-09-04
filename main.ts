@@ -14,8 +14,8 @@ function Senden () {
 function Messen () {
     Laufzeit = input.runningTime() / 1000
     Uhrzeit = NEO6M_GPS.getGPSTime()
-    Laenge = NEO6M_GPS.getGPSLatitude()
-    Breite = NEO6M_GPS.getGPSLongitude()
+    Breite = NEO6M_GPS.getGPSLatitude()
+    Laenge = NEO6M_GPS.getGPSLongitude()
     Hoehe = NEO6M_GPS.getAltitude()
     Temperatur = bme280.temperature()
     Luftdruck = bme280.pressure()
