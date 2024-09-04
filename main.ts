@@ -14,10 +14,10 @@ function Messen () {
     Temperatur = bme280.temperature()
     Lichtstaerke = SI1145.readLight(ILLUMINANCE.LUX)
 }
-input.onButtonPressed(Button.A, function () {
+input.onButtonEvent(Button.A, input.buttonEventClick(), function () {
     Arbeiten = true
 })
-input.onButtonPressed(Button.B, function () {
+input.onButtonEvent(Button.B, input.buttonEventClick(), function () {
     Arbeiten = false
 })
 function Speichern () {
