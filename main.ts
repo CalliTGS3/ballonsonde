@@ -66,6 +66,7 @@ buf[0] = 181
     buf[41] = 0
     buf[42] = 22
     buf[43] = 220
+    serial.writeBuffer(buf)
 }
 function Speichern () {
     Qwiic_Openlog.writeStringValue("Uhrzeit", Uhrzeit)
