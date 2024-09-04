@@ -1,17 +1,28 @@
 function Senden () {
+    radio.sendString("LZ:" + Laufzeit)
     radio.sendString("UZ:" + Uhrzeit)
-    radio.sendString("TE:" + Temperatur)
     radio.sendString("LA:" + Laenge)
     radio.sendString("BR:" + Breite)
     radio.sendString("HO:" + Hoehe)
+    radio.sendString("TE:" + Temperatur)
+    radio.sendString("LU:" + Luftdruck)
+    radio.sendString("LF:" + Luftfeuchte)
+    radio.sendString("LI:" + Lichtstaerke)
+    radio.sendString("UV:" + Ultraviolett)
+    radio.sendString("IR:" + Infrarot)
 }
 function Messen () {
+    Laufzeit = input.runningTime() / 1000
     Uhrzeit = NEO6M_GPS.getGPSTime()
+    Laenge = NEO6M_GPS.getGPSLatitude()
+    Breite = NEO6M_GPS.getGPSLongitude()
     Hoehe = NEO6M_GPS.getAltitude()
-    Laenge = NEO6M_GPS.getGPSLongitude()
-    Breite = NEO6M_GPS.getGPSLatitude()
     Temperatur = bme280.temperature()
+    Luftdruck = bme280.pressure()
+    Luftfeuchte = bme280.humidity()
     Lichtstaerke = SI1145.readLight(ILLUMINANCE.LUX)
+    Ultraviolett = SI1145.readUVI()
+    Infrarot = SI1145.readIR()
 }
 input.onButtonEvent(Button.A, input.buttonEventClick(), function () {
     Arbeiten = true
@@ -19,7 +30,6 @@ input.onButtonEvent(Button.A, input.buttonEventClick(), function () {
 input.onButtonEvent(Button.B, input.buttonEventClick(), function () {
     Arbeiten = false
 })
-// NEO6M_GPS.writeConfig(buf)
 function initFlightMode () {
     let buf: Buffer = pins.createBuffer(44);
 buf[0] = 181
@@ -66,47 +76,71 @@ buf[0] = 181
     buf[41] = 0
     buf[42] = 22
     buf[43] = 220
+    // NEO6M_GPS.writeConfig(buf, 44)
     serial.writeBuffer(buf)
 }
 function Speichern () {
-    Qwiic_Openlog.writeStringValue("Uhrzeit", Uhrzeit)
-    Qwiic_Openlog.writeStringValue("Länge", Laenge)
-    Qwiic_Openlog.writeStringValue("Breite", Breite)
-    Qwiic_Openlog.writeStringValue("Höhe", Hoehe)
-    Qwiic_Openlog.writeValue("Temperatur", Temperatur)
-    Qwiic_Openlog.writeValue("Lichtstärke", Lichtstaerke)
+    Qwiic_Openlog.writeString(Laufzeit.toString())
+    Qwiic_Openlog.writeString(";" + Uhrzeit.substr(0, 6))
+    Qwiic_Openlog.writeString(";" + Laenge)
+    Qwiic_Openlog.writeString(";" + Breite)
+    Qwiic_Openlog.writeString(";" + Hoehe)
+    Qwiic_Openlog.writeString(";" + Temperatur.toString())
+    Qwiic_Openlog.writeString(";" + Luftdruck.toString())
+    Qwiic_Openlog.writeString(";" + Luftfeuchte.toString())
+    Qwiic_Openlog.writeString(";" + Lichtstaerke.toString())
+    Qwiic_Openlog.writeString(";" + Ultraviolett.toString())
+    Qwiic_Openlog.writeLine(";" + Infrarot.toString())
 }
 let Hoehe = ""
 let Breite = ""
 let Laenge = ""
 let Uhrzeit = ""
 let Arbeiten = false
+let Laufzeit = 0
+let Infrarot = 0
+let Ultraviolett = 0
+let Luftfeuchte = 0
+let Luftdruck = 0
 let Temperatur = 0
 let Lichtstaerke = 0
-Lichtstaerke = 0
-Temperatur = 0
 radio.setGroup(1)
 radio.setTransmitPower(7)
 SI1145.init_SI1145()
 bme280.setAddress(BME280_I2C_ADDRESS.ADDR_0x76)
 bme280.setPower(true)
 NEO6M_GPS.initGPS(SerialPin.C17, SerialPin.C16, BaudRate.BaudRate9600)
-NEO6M_GPS.setGPSFormat(GPS_Format.SIGNED_DEG_DEC)
+NEO6M_GPS.setGPSFormat(GPS_Format.DEG_DEC)
 initFlightMode()
-Qwiic_Openlog.createFile("Sonde11.log")
-Qwiic_Openlog.openFile("Sonde11.log")
+Qwiic_Openlog.createFile("Sonde.log")
+Qwiic_Openlog.openFile("Sonde.log")
+Arbeiten = true
+for (let Warten = 0; Warten <= 9; Warten++) {
+    basic.showNumber(9 - Warten)
+    basic.pause(1000)
+}
+Qwiic_Openlog.writeString("Laufzeit;Uhrzeit;Laenge;Breite;Hoehe;")
+Qwiic_Openlog.writeString("Temperatur;Luftdruck;Luftfeuchte;")
+Qwiic_Openlog.writeLine("Helligkeit;Ultraviolett;Infrarot")
 while (true) {
     if (Arbeiten) {
         Messen()
         Speichern()
         Senden()
-        basic.pause(500)
-        basic.showIcon(IconNames.ArrowEast)
-        basic.pause(500)
+        basic.pause(800)
+        basic.showLeds(`
+            . . . . .
+            . . . . .
+            . . # . .
+            . . . . .
+            . . . . .
+            `)
+        basic.pause(200)
         basic.clearScreen()
     } else {
+        basic.showIcon(IconNames.Diamond)
         basic.pause(500)
-        basic.showIcon(IconNames.ArrowWest)
+        basic.showIcon(IconNames.SmallDiamond)
         basic.pause(500)
         basic.clearScreen()
     }
