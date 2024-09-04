@@ -1,6 +1,28 @@
+function Senden () {
+    radio.sendString("UZ:" + Uhrzeit)
+    radio.sendString("TE:" + Temperatur)
+    radio.sendString("LA:" + Laenge)
+    radio.sendString("BR:" + Breite)
+    radio.sendString("HO:" + Hoehe)
+}
+function Messen () {
+    Uhrzeit = NEO6M_GPS.getGPSTime()
+    Hoehe = NEO6M_GPS.getAltitude()
+    Laenge = NEO6M_GPS.getGPSLongitude()
+    Breite = NEO6M_GPS.getGPSLatitude()
+    Temperatur = bme280.temperature()
+    Lichtstaerke = SI1145.readLight(ILLUMINANCE.LUX)
+}
+input.onButtonEvent(Button.A, input.buttonEventClick(), function () {
+    Arbeiten = true
+})
+input.onButtonEvent(Button.B, input.buttonEventClick(), function () {
+    Arbeiten = false
+})
+// NEO6M_GPS.writeConfig(buf)
 function initFlightMode () {
     let buf: Buffer = pins.createBuffer(44);
-    buf[0] = 181
+buf[0] = 181
     buf[1] = 98
     buf[2] = 6
     buf[3] = 36
@@ -44,30 +66,7 @@ function initFlightMode () {
     buf[41] = 0
     buf[42] = 22
     buf[43] = 220
-    NEO6M_GPS.writeConfig(buf)
 }
-function Senden () {
-    radio.sendString("UZ:" + Uhrzeit)
-    radio.sendString("TE:" + Temperatur)
-    radio.sendString("LA:" + Laenge)
-    radio.sendString("BR:" + Breite)
-    radio.sendString("HO:" + Hoehe)
-}
-function Messen () {
-    Uhrzeit = NEO6M_GPS.getGPSTime()
-    Hoehe = NEO6M_GPS.getAltitude()
-    Breite = NEO6M_GPS.getGPSLongitude()
-    Breite = NEO6M_GPS.getGPSLongitude()
-    Laenge = NEO6M_GPS.getGPSLatitude()
-    Temperatur = bme280.temperature()
-    Lichtstaerke = SI1145.readLight(ILLUMINANCE.LUX)
-}
-input.onButtonEvent(Button.A, input.buttonEventClick(), function () {
-    Arbeiten = true
-})
-input.onButtonEvent(Button.B, input.buttonEventClick(), function () {
-    Arbeiten = false
-})
 function Speichern () {
     Qwiic_Openlog.writeStringValue("Uhrzeit", Uhrzeit)
     Qwiic_Openlog.writeStringValue("Länge", Laenge)
@@ -92,6 +91,7 @@ bme280.setAddress(BME280_I2C_ADDRESS.ADDR_0x76)
 bme280.setPower(true)
 NEO6M_GPS.initGPS(SerialPin.C17, SerialPin.C16, BaudRate.BaudRate9600)
 NEO6M_GPS.setGPSFormat(GPS_Format.SIGNED_DEG_DEC)
+initFlightMode()
 Qwiic_Openlog.createFile("Sonde11.log")
 Qwiic_Openlog.openFile("Sonde11.log")
 while (true) {
